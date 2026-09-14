@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f5f7fb">
+<title>DUO AI AGENT · 设置大模型</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .admin-main { max-width: 900px; }
+  .card {
+    background: linear-gradient(160deg, #ffffff, #f8fafd);
+    border: 1px solid var(--line); border-radius: 18px; padding: 28px; margin-top: 16px;
+  }
+  .card h2 { font-size: 18px; margin-bottom: 6px; }
+  .card .sub { color: var(--muted); font-size: 13px; line-height: 1.9; margin-bottom: 16px; }
+  .login-box { max-width: 420px; margin: 40px auto; text-align: center; }
+  .login-box input {
+    width: 100%; margin-top: 16px; background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 12px; color: var(--text); padding: 13px 16px; font-size: 15px; outline: none;
+  }
+  .login-box input:focus { border-color: var(--cyan); }
+  .cfg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .cfg-card {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 16px; padding: 18px;
+  }
+  .cfg-card.a { border-color: rgba(37,99,235,.35); }
+  .cfg-card.b { border-color: rgba(225,29,72,.35); }
+  .cfg-card.judge { border-color: rgba(217,119,6,.4); }
+  .cfg-title { font-size: 15px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .key-badge { font-size: 11px; border-radius: 6px; padding: 2px 8px; font-weight: 700; }
+  .key-badge.ok { color: var(--green); background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.4); }
+  .key-badge.no { color: var(--gold); background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.4); }
+  .cfg-card label { display: block; font-size: 12px; color: #9fb0d0; margin: 10px 0 5px; font-weight: 600; }
+  .cfg-card input, .cfg-card select {
+    width: 100%; background: #ffffff; border: 1px solid var(--line); border-radius: 10px;
+    color: var(--text); padding: 9px 11px; font-size: 13.5px; outline: none;
+  }
+  .cfg-card input:focus, .cfg-card select:focus { border-color: var(--cyan); }
+  .cfg-card .row { display: flex; gap: 8px; align-items: flex-end; }
+  .cfg-card .row > div { flex: 1; }
+  .cfg-card button {
+    flex: none; border: 1px solid var(--line); background: transparent; color: var(--text);
+    border-radius: 10px; padding: 9px 13px; font-size: 12.5px;
+  }
+  .cfg-card button:hover { border-color: var(--green); color: var(--green); }
+  .clear-key { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .clear-key input { width: auto; }
+  .btn-save {
+    border: none; background: linear-gradient(90deg, var(--cyan), var(--violet));
+    color: #ffffff; font-weight: 800; border-radius: 12px; padding: 12px 30px; font-size: 15px; letter-spacing: .1em;
+  }
+  .btn-save:hover { filter: brightness(1.08); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  td .t-topic { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mini-btn { border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 8px; padding: 4px 12px; font-size: 12px; margin-right: 6px; }
+  .mini-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .mini-btn.danger:hover { border-color: var(--rose); color: var(--rose); }
+  .head-actions { display: flex; gap: 10px; align-items: center; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">⚙️ 设置大模型 <small>MODEL SETTINGS</small></div>
+  <div class="head-actions">
+    <a class="btn-ghost" href="/">返回擂台</a>
+    <button class="btn-ghost hidden" id="btn-logout">退出登录</button>
+  </div>
+</header>
+
+<main class="admin-main">
+  <div class="card login-box hidden" id="login-card">
+    <h2>管理员登录</h2>
+    <p class="sub">请输入管理员密码（服务器环境变量 ADMIN_PASSWORD，默认 admin123）</p>
+    <input type="password" id="admin-password" placeholder="管理员密码">
+    <button class="btn-save" id="btn-login" style="margin-top:16px;width:100%">登录</button>
+  </div>
+
+  <div id="panel" class="hidden">
+    <div class="card">
+      <h2>⚙️ 模型与密钥配置</h2>
+      <p class="sub">
+        两个辩手不预设正反方：收到辩题后各自独立判断观点并选择站队，观点一致判平局，观点对立才开辩。<br>
+        密钥只保存在服务器 <code>data/keys.json</code>（权限 600），永不发送到浏览器。填好密钥后点击保存，队列中的辩题会自动开赛。
+      </p>
+      <div class="cfg-grid" id="cfg-cards"></div>
+      <button class="btn-save" id="btn-save">💾 保存全部配置</button>
+    </div>
+
+    <div class="card">
+      <h2>🗂️ 辩论队列管理</h2>
+      <p class="sub">可重试失败场次、取消排队场次。普通用户无法操作。</p>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="mini-btn" id="btn-refresh">🔄 刷新</button></div>
+      <table id="queue-table">
+        <thead><tr><th>状态</th><th>辩题</th><th>轮数</th><th>时间</th><th>操作</th></tr></thead>
+        <tbody id="queue-body"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div id="toast-wrap"></div>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const SLOT_META = {
+  a: { title: "🟦 选手 1（默认 豆包）", cls: "a", label: "选手 1" },
+  b: { title: "🟥 选手 2（默认 DeepSeek）", cls: "b", label: "选手 2" },
+  judge: { title: "⚖️ 裁判（默认 DeepSeek 判官）", cls: "judge", label: "裁判" },
+};
+const STATUS_TEXT = { queued: "排队中", running: "进行中", judging: "裁判审议", finished: "已结束", error: "出错", cancelled: "已取消" };
+
+function toast(msg, type = "ok", ms = 4000) {
+  const t = document.createElement("div");
+  t.className = "toast " + type;
+  t.textContent = msg;
+  $("toast-wrap").appendChild(t);
+  setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function fmtTime(ts) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+async function checkStatus() {
+  try {
+    const res = await fetch("/api/admin/status");
+    const j = await res.json();
+    if (j.authed) { showPanel(); } else { showLogin(); }
+  } catch (_) { showLogin(); }
+}
+
+function showLogin() {
+  $("login-card").classList.remove("hidden");
+  $("panel").classList.add("hidden");
+  $("btn-logout").classList.add("hidden");
+}
+function showPanel() {
+  $("login-card").classList.add("hidden");
+  $("panel").classList.remove("hidden");
+  $("btn-logout").classList.remove("hidden");
+  loadConfig();
+  loadQueue();
+}
+
+async function loadConfig() {
+  const res = await fetch("/api/admin/config");
+  const j = await res.json();
+  const wrap = $("cfg-cards");
+  wrap.innerHTML = "";
+  for (const slot of ["a", "b", "judge"]) {
+    const c = j.config[slot];
+    const meta = SLOT_META[slot];
+    const card = document.createElement("div");
+    card.className = "cfg-card " + meta.cls;
+    card.innerHTML = `
+      <div class="cfg-title">${meta.title} <span class="key-badge ${c.keySet ? "ok" : "no"}">${c.keySet ? "已填密钥 " + c.keyHint : "未填密钥"}</span></div>
+      <label>显示名称</label>
+      <input data-f="name" value="${escapeHtml(c.name)}" placeholder="选手名称">
+      <label>API Base URL</label>
+      <input data-f="base" value="${escapeHtml(c.base)}" placeholder="https://api.deepseek.com">
+      <label>接口类型</label>
+      <select data-f="api">
+        <option value="chat" ${c.api !== "responses" && c.api !== "manus" ? "selected" : ""}>OpenAI Chat Completions（/chat/completions）</option>
+        <option value="responses" ${c.api === "responses" ? "selected" : ""}>OpenAI Responses（/responses）</option>
+        <option value="manus" ${c.api === "manus" ? "selected" : ""}>Manus 任务式接口（/v2/task）</option>
+      </select>
+      <label>模型名</label>
+      <input data-f="model" value="${escapeHtml(c.model)}" placeholder="deepseek-chat">
+      <label>API Key ${c.keySet ? "（留空则保持不变）" : ""}</label>
+      <input type="password" data-f="key" placeholder="${c.keySet ? "已设置 " + c.keyHint : "sk-..."}">
+      <label class="clear-key"><input type="checkbox" data-f="clearKey"> 清除此密钥</label>
+      <div class="row" style="margin-top:12px"><div></div><button data-test="${slot}">🔌 测试连接</button></div>`;
+    wrap.appendChild(card);
+  }
+}
+
+async function saveConfig() {
+  const cards = Array.from($("cfg-cards").children);
+  const slots = ["a", "b", "judge"];
+  const body = {};
+  cards.forEach((card, i) => {
+    const g = (f) => card.querySelector(`[data-f="${f}"]`).value;
+    body[slots[i]] = {
+      name: g("name").trim(),
+      base: g("base").trim(),
+      api: g("api"),
+      model: g("model").trim(),
+      key: g("key").trim(),
+      clearKey: card.querySelector('[data-f="clearKey"]').checked,
+    };
+  });
+  try {
+    const res = await fetch("/api/admin/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const j = await res.json();
+    if (!res.ok) throw new Error(j.error || "保存失败");
+    toast("配置已保存 ✓ 队列自动开赛", "ok");
+    loadConfig();
+    loadQueue();
+  } catch (e) {
+    toast(e.message, "err", 6000);
+  }
+}
+
+async function testSlot(slot) {
+  const card = Array.from($("cfg-cards").children)[["a", "b", "judge"].indexOf(slot)];
+  const btn = card.querySelector(`[data-test="${slot}"]`);
+  btn.disabled = true;
+  btn.textContent = "测试中…";
+  try {
+    const res = await fetch("/api/admin/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slot }),
+    });
+    const j = await res.json();
+    if (!res.ok) throw new Error(j.error || "测试失败");
+    toast(SLOT_META[slot].label + " 连接成功 ✓ " + j.reply, "ok", 5000);
+  } catch (e) {
+    toast(SLOT_META[slot].label + " 连接失败：" + e.message, "err", 7000);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🔌 测试连接";
+  }
+}
+
+async function loadQueue() {
+  const res = await fetch("/api/state");
+  const j = await res.json();
+  const body = $("queue-body");
+  body.innerHTML = "";
+  for (const d of j.debates) {
+    const tr = document.createElement("tr");
+    let actions = "";
+    if (d.status === "error") actions += `<button class="mini-btn" data-act="retry" data-id="${d.id}">↻ 重试</button>`;
+    if (d.status === "queued") actions += `<button class="mini-btn danger" data-act="cancel" data-id="${d.id}">✕ 取消</button>`;
+    tr.innerHTML = `
+      <td>${STATUS_TEXT[d.status] || d.status}</td>
+      <td class="t-topic" title="${escapeHtml(d.topic)}">${escapeHtml(d.topic)}</td>
+      <td>${d.rounds}</td>
+      <td>${fmtTime(d.createdAt)}</td>
+      <td>${actions}</td>`;
+    body.appendChild(tr);
+  }
+}
+
+async function act(id, action) {
+  try {
+    const res = await fetch("/api/admin/action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action }),
+    });
+    const j = await res.json();
+    if (!res.ok) throw new Error(j.error || "操作失败");
+    toast("操作成功", "ok");
+    loadQueue();
+  } catch (e) {
+    toast(e.message, "err");
+  }
+}
+
+$("btn-login").addEventListener("click", async () => {
+  const res = await fetch("/api/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: $("admin-password").value }),
+  });
+  const j = await res.json();
+  if (!res.ok) { toast(j.error || "登录失败", "err"); return; }
+  toast("登录成功", "ok");
+  showPanel();
+});
+$("admin-password").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-login").click(); });
+$("btn-logout").addEventListener("click", () => {
+  document.cookie = "arena_admin=; Max-Age=0; Path=/";
+  location.reload();
+});
+$("btn-save").addEventListener("click", saveConfig);
+$("btn-refresh").addEventListener("click", loadQueue);
+$("cfg-cards").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-test]");
+  if (btn) testSlot(btn.dataset.test);
+});
+$("queue-body").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-act]");
+  if (btn) act(btn.dataset.id, btn.dataset.act);
+});
+setInterval(() => { if (!$("panel").classList.contains("hidden")) loadQueue(); }, 5000);
+
+checkStatus();
+</script>
+</body>
+</html>

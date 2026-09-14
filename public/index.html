@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f5f7fb">
+<title>DUO AI AGENT · AI 辩论擂台</title>
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><img class="brand-logo" src="/logo.svg" alt="logo">DUO AI AGENT <small>AI DEBATE ARENA</small></div>
+  <div class="header-right">
+    <span class="online-chip" id="online-chip">👁 0 人在线</span>
+    <a class="btn-ghost" href="/admin">⚙️ 设置大模型</a>
+  </div>
+</header>
+
+<div class="banner hidden" id="ready-banner">
+  ⚙️ 辩手密钥尚未配置，新辩题将进入队列等待；在「设置大模型」中填写密钥后自动开赛。
+  <a href="/admin">前往设置 →</a>
+</div>
+
+<main>
+  <section id="list-view">
+    <!-- 首页内嵌发起辩论 -->
+    <div class="create-box">
+      <div class="create-title">⚔️ 发起辩论 <span>输入你的辩题 / 提问，两位大模型先站队、再开辩</span></div>
+      <div class="topic-wrap">
+        <textarea id="topic-input" maxlength="200" placeholder="例如：AI 会让人类失业，还是创造更多机会？"></textarea>
+        <span class="char-count" id="char-count">0 / 200</span>
+      </div>
+      <div class="chips" id="topic-chips">
+        <button class="chip">先有鸡还是先有蛋？</button>
+        <button class="chip">甜粽子 vs 咸粽子，谁才是正统？</button>
+        <button class="chip">AI 会让人类失业还是创造更多机会？</button>
+        <button class="chip">上班到底该不该摸鱼？</button>
+        <button class="chip">时间旅行到底可不可行？</button>
+      </div>
+      <div class="create-bottom">
+        <div class="rounds-row">
+          <span class="rounds-label">轮数 <b>3</b></span>
+          <input type="range" id="rounds-range" min="1" max="1000" step="1" value="3">
+        </div>
+        <button class="btn-save" id="btn-submit">⚔️ 开战！</button>
+      </div>
+      <p class="tiny">两位大模型先独立站队（正方 / 反方）：观点一致直接握手言和判平局；观点对立则按轮数开辩，每轮双方各扣 1/轮数 血量，最终由 DeepSeek 判官裁决胜负。</p>
+    </div>
+
+    <div class="list-head">
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-filter="all">全部</button>
+        <button class="tab" data-filter="live">进行中</button>
+        <button class="tab" data-filter="done">已结束</button>
+      </div>
+      <span class="muted" id="list-count"></span>
+    </div>
+    <div id="debate-list"></div>
+    <div class="empty hidden" id="list-empty">还没有辩论，在上方输入辩题开第一场！</div>
+  </section>
+
+  <section id="detail-view" class="hidden">
+    <button class="btn-back" id="btn-back">← 返回擂台</button>
+
+    <!-- PK 站队舞台 -->
+    <div id="pk-stage" class="hidden">
+      <div class="pk-arena">
+        <div class="pk-fighter pk-left" id="pk-left">
+          <div class="pk-ring"><img id="pk-left-avatar" src="/avatar-a.svg" alt=""><span class="pk-ring-glow"></span></div>
+          <div class="pk-name" id="pk-left-name">—</div>
+          <div class="pk-tag" id="pk-left-tag">独立思考中…</div>
+          <div class="pk-stance-card hidden" id="pk-left-card"><span id="pk-left-stance"></span><i>已站队</i></div>
+        </div>
+        <div class="pk-center">
+          <div class="pk-vs" id="pk-vs">VS</div>
+          <div class="pk-clash hidden" id="pk-clash">💥</div>
+          <div class="pk-sparks"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="pk-fighter pk-right" id="pk-right">
+          <div class="pk-ring"><img id="pk-right-avatar" src="/avatar-b.svg" alt=""><span class="pk-ring-glow"></span></div>
+          <div class="pk-name" id="pk-right-name">—</div>
+          <div class="pk-tag" id="pk-right-tag">独立思考中…</div>
+          <div class="pk-stance-card hidden" id="pk-right-card"><span id="pk-right-stance"></span><i>已站队</i></div>
+        </div>
+      </div>
+      <div class="pk-statusline" id="pk-statusline">🎯 双方正在独立判断观点并站队…</div>
+    </div>
+
+    <!-- 常规擂台 -->
+    <div class="arena" id="arena-box">
+      <div class="fighter f-a" id="fighter-a">
+        <div class="fighter-head">
+          <img class="avatar-img" id="f-a-avatar" src="/avatar-a.svg" alt="头像">
+          <div class="f-info">
+            <div class="f-side pending" id="f-a-side">待站队</div>
+            <div class="f-name" id="f-a-name">—</div>
+            <div class="f-model" id="f-a-model"></div>
+          </div>
+        </div>
+        <div class="hp">
+          <div class="hp-fill hp-a" id="hp-a" style="width:100%"></div>
+          <span class="hp-num" id="hp-a-num">100%</span>
+        </div>
+      </div>
+
+      <div class="vs-box">
+        <div class="vs" id="vs-badge">VS</div>
+        <div class="round-info" id="round-info">等待开赛</div>
+        <div class="viewers" id="viewers">👁 0 人围观</div>
+      </div>
+
+      <div class="fighter f-b" id="fighter-b">
+        <div class="fighter-head">
+          <img class="avatar-img" id="f-b-avatar" src="/avatar-b.svg" alt="头像">
+          <div class="f-info">
+            <div class="f-side pending" id="f-b-side">待站队</div>
+            <div class="f-name" id="f-b-name">—</div>
+            <div class="f-model" id="f-b-model"></div>
+          </div>
+        </div>
+        <div class="hp">
+          <div class="hp-fill hp-b" id="hp-b" style="width:100%"></div>
+          <span class="hp-num" id="hp-b-num">100%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-line" id="status-line"></div>
+    <div id="chat"></div>
+    <div id="judge-wrap"></div>
+    <div class="detail-actions hidden" id="detail-actions">
+      <button class="btn-2 gold" id="btn-copy">📋 复制战报</button>
+      <button class="btn-2" id="btn-replay">🏆 重播胜利动画</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  DUO AI AGENT · 无需注册 · 实时围观他人辩论 · 历史战报可回看 &nbsp;|&nbsp; 密钥只保存在服务器，浏览器端不可见
+</footer>
+
+<!-- 裁判生成结果动画 -->
+<div id="judge-stage" class="hidden">
+  <div class="js-box">
+    <div class="js-gavel">⚖️</div>
+    <div class="js-title">裁判正在生成结果</div>
+    <div class="js-bar"><div class="js-fill"></div></div>
+    <div class="js-sub" id="js-sub">DeepSeek 判官审议全量交锋实录中…</div>
+  </div>
+</div>
+
+<!-- 胜利动画 -->
+<div id="victory-overlay" class="hidden">
+  <canvas id="confetti"></canvas>
+  <div class="victory-box">
+    <div class="trophy" id="victory-trophy">🏆</div>
+    <div class="victory-title" id="victory-title"></div>
+    <div class="victory-score" id="victory-score"></div>
+    <div class="victory-reason" id="victory-reason"></div>
+    <div class="victory-btns">
+      <button class="btn-save" id="victory-close">查看完整战报</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<script src="/app.js"></script>
+</body>
+</html>

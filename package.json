@@ -1,0 +1,13 @@
+{
+  "name": "duo-ai-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DUO AI AGENT：双大模型在线辩论擂台，独立站队 → 观点对立开辩 → DeepSeek 判官裁决",
+  "scripts": {
+    "start": "node server.js",
+    "mock": "node test/mock-api.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

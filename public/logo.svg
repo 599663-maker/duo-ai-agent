@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="duoA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0ea5e9"/><stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="duoB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#cbd5e1"/><stop offset="1" stop-color="#64748b"/>
+    </linearGradient>
+    <linearGradient id="duoRing" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e3a8a"/><stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="duoGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+    <radialGradient id="duoGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+    <path id="arcTop" d="M128,32 a96,96 0 1,1 -0.01,0"/>
+    <path id="arcBottom" d="M128,224 a96,96 0 0,0 0.01,0"/>
+  </defs>
+
+  <circle cx="128" cy="128" r="125" fill="#ffffff"/>
+  <circle cx="128" cy="128" r="125" fill="none" stroke="#dbe3ef" stroke-width="4"/>
+  <circle cx="128" cy="128" r="99" fill="#f8fafc" stroke="url(#duoRing)" stroke-width="4"/>
+  <circle cx="128" cy="128" r="99" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 8" opacity="0.55"/>
+
+  <text font-family="'SF Pro Display','Helvetica Neue',Arial,sans-serif" font-size="15.5" font-weight="800" letter-spacing="4" fill="#1e3a8a">
+    <textPath href="#arcTop" startOffset="0%" text-anchor="middle">DUO AI AGENT</textPath>
+  </text>
+  <text font-family="'SF Pro Display','Helvetica Neue',Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="3.5" fill="#475569">
+    <textPath href="#arcBottom" startOffset="0%" text-anchor="middle">AI DEBATE ARENA</textPath>
+  </text>
+
+  <circle cx="42" cy="58" r="9" fill="#1e3a8a" opacity="0.14"/>
+  <circle cx="214" cy="58" r="9" fill="#1e3a8a" opacity="0.14"/>
+
+  <!-- 蓝方战士 -->
+  <g>
+    <path d="M62 196 L62 156 Q62 142 80 140 L104 140 Q118 142 118 156 L118 196 Z" fill="url(#duoA)"/>
+    <circle cx="92" cy="124" r="23" fill="url(#duoA)"/>
+    <rect x="74" y="117" width="36" height="13" rx="6.5" fill="#0b1220" opacity="0.85"/>
+    <circle cx="86" cy="123.5" r="2.4" fill="#7dd3fc"/>
+    <circle cx="98" cy="123.5" r="2.4" fill="#7dd3fc"/>
+    <line x1="92" y1="101" x2="92" y2="108" stroke="#1d4ed8" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="92" cy="98" r="4" fill="#0ea5e9"/>
+    <path d="M66 158 Q92 150 118 158 L118 168 Q92 160 66 168 Z" fill="#0b1220" opacity="0.16"/>
+  </g>
+
+  <!-- 灰方战士 -->
+  <g>
+    <path d="M138 196 L138 156 Q138 142 152 140 L176 140 Q194 142 194 156 L194 196 Z" fill="url(#duoB)"/>
+    <circle cx="164" cy="124" r="23" fill="url(#duoB)"/>
+    <rect x="146" y="117" width="36" height="13" rx="6.5" fill="#0f172a" opacity="0.85"/>
+    <circle cx="158" cy="123.5" r="2.4" fill="#e2e8f0"/>
+    <circle cx="170" cy="123.5" r="2.4" fill="#e2e8f0"/>
+    <line x1="164" y1="101" x2="164" y2="108" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="164" cy="98" r="4" fill="#94a3b8"/>
+    <path d="M138 158 Q164 150 190 158 L190 168 Q164 160 138 168 Z" fill="#0f172a" opacity="0.16"/>
+  </g>
+
+  <!-- 中心 PK 雷电 -->
+  <circle cx="128" cy="128" r="42" fill="url(#duoGlow)"/>
+  <circle cx="128" cy="128" r="30" fill="#ffffff" stroke="url(#duoGold)" stroke-width="3" stroke-dasharray="5 7"/>
+  <path d="M128 102 L110 140 L120 140 L115 160 L144 120 L132 120 L139 102 Z" fill="url(#duoGold)" stroke="#92400e" stroke-width="2" stroke-linejoin="round"/>
+  <text x="128" y="156" text-anchor="middle" font-family="Arial,'Helvetica Neue',sans-serif" font-size="11" font-weight="900" letter-spacing="1" fill="#b45309">PK</text>
+</svg>
