@@ -414,7 +414,12 @@ function buildJudgeMessages(d) {
     `---`,
     ``,
     `请裁决并严格按以下 JSON 格式输出：`,
-    `{"winner":"正方 或 反方 或 平局","score":"正方 X 分 - 反方 Y 分","reason":"不超过150字的裁决理由","highlight":"全场最精彩的一句交锋"}`,
+    `{"winner":"正方 或 反方","score":"正方 X 分 - 反方 Y 分","reason":"不超过150字的裁决理由","highlight":"全场最精彩的一句交锋"}`,
+    ``,
+    `硬性规则：`,
+    `1. 必须分出胜负，winner 只能是「正方」或「反方」，绝对禁止「平局」；`,
+    `2. 双方分数必须不同，至少相差 1 分；`,
+    `3. 若双方表现接近，也要依据论证力度与反驳质量做出倾向性裁决。`,
   ].join("\n");
   return [
     { role: "system", content: system },
@@ -481,7 +486,7 @@ function parseVerdict(text) {
     const st = s.indexOf("{"), en = s.lastIndexOf("}");
     if (st >= 0 && en > st) { try { obj = JSON.parse(s.slice(st, en + 1)); } catch (_) {} }
   }
-  let winner = "平局";
+  let winner = null;
   if (obj && obj.winner) {
     const w = String(obj.winner);
     if (/反/.test(w)) winner = "反方";
@@ -493,6 +498,53 @@ function parseVerdict(text) {
     reason: obj && obj.reason ? String(obj.reason) : "",
     highlight: obj && obj.highlight ? String(obj.highlight) : "",
   };
+}
+
+function parseScore(str) {
+  const a = /正方\s*(\d+(?:\.\d+)?)/.exec(String(str || ""));
+  const b = /反方\s*(\d+(?:\.\d+)?)/.exec(String(str || ""));
+  return [a ? Number(a[1]) : null, b ? Number(b[1]) : null];
+}
+
+/* 裁判必须分出胜负：先正常裁决，无效则强化重判一次，仍无效按比分/交锋质量强制判定 */
+async function resolveVerdict(d) {
+  let lastFlush = 0;
+  const onDelta = (t) => {
+    const now = Date.now();
+    if (now - lastFlush > 120) {
+      lastFlush = now;
+      broadcast("delta", { id: d.id, side: "judge", round: null, text: t });
+    }
+  };
+  const ask = async (extra) => {
+    const msgs = buildJudgeMessages(d);
+    if (extra) msgs.push({ role: "user", content: extra });
+    return callChat(modelConfig.judge, msgs, {
+      temperature: 0.3,
+      maxTokens: 1200,
+      timeoutMs: 180000,
+      onDelta,
+    });
+  };
+  let text = await ask();
+  let verdict = parseVerdict(text);
+  if (verdict.winner !== "正方" && verdict.winner !== "反方") {
+    text = await ask("注意：你上一次的裁决没有给出明确胜方。本场辩论必须分出胜负，请重新裁决并严格输出 JSON，winner 只能是「正方」或「反方」，比分必须有差距。");
+    verdict = parseVerdict(text);
+  }
+  if (verdict.winner !== "正方" && verdict.winner !== "反方") {
+    const [sa, sb] = parseScore(verdict.score);
+    if (sa != null && sb != null && sa !== sb) {
+      verdict.winner = sa > sb ? "正方" : "反方";
+    } else {
+      const ca = d.messages.filter((m) => m.stance === "正方").reduce((n, m) => n + String(m.text || "").length, 0);
+      const cb = d.messages.filter((m) => m.stance === "反方").reduce((n, m) => n + String(m.text || "").length, 0);
+      verdict.winner = ca >= cb ? "正方" : "反方";
+      if (!verdict.reason) verdict.reason = "双方表现旗鼓相当，按交锋实录综合评定，" + verdict.winner + "略胜一筹。";
+    }
+  }
+  d.verdict = verdict;
+  return text;
 }
 
 /* ============================================================
@@ -657,21 +709,7 @@ async function runDebate(d) {
         broadcast("debate", summary(d));
         broadcast("judging", { id: d.id });
 
-        let lastFlush = 0;
-        const judgeText = await callChat(modelConfig.judge, buildJudgeMessages(d), {
-          temperature: 0.3,
-          maxTokens: 1200,
-          timeoutMs: 180000,
-          onDelta: (t) => {
-            const now = Date.now();
-            if (now - lastFlush > 120) {
-              lastFlush = now;
-              broadcast("delta", { id: d.id, side: "judge", round: null, text: t });
-            }
-          },
-        });
-        d.judgeText = judgeText;
-        d.verdict = parseVerdict(judgeText);
+        d.judgeText = await resolveVerdict(d);
         d.status = "finished";
         d.finishedAt = Date.now();
         d.hpA = 0;
