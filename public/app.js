@@ -514,6 +514,7 @@ function fillVerdictBox(box, v) {
   const emoji = v.winner === "平局" ? "🤝" : "🏆";
   box.innerHTML = `
     <div class="winner ${cls}">${emoji} ${escapeHtml(v.winner === "平局" ? "势均力敌 · 平局" : v.winner + "获胜")}</div>
+    ${v.conclusion ? `<div class="conclusion">📌 最终结论：${escapeHtml(v.conclusion)}</div>` : ""}
     ${v.score ? `<div class="score">${escapeHtml(v.score)}</div>` : ""}
     ${v.reason ? `<div class="reason">${escapeHtml(v.reason)}</div>` : ""}
     ${v.highlight ? `<div class="highlight">💬 ${escapeHtml(v.highlight)}</div>` : ""}`;
@@ -642,6 +643,11 @@ function showVictory(d) {
     $("victory-title").textContent = `${v.winner} · ${winnerName} 获胜！`;
   }
   $("victory-score").textContent = v.score || "";
+  const concl = $("victory-conclusion");
+  if (concl) {
+    concl.textContent = v.conclusion ? "📌 最终结论：" + v.conclusion : "";
+    concl.classList.toggle("hidden", !v.conclusion);
+  }
   $("victory-reason").textContent = v.reason || "";
   $("victory-overlay").classList.remove("hidden");
   const color = v.winner === "反方" ? "#fb7185" : v.winner === "正方" ? "#22d3ee" : "#fbbf24";

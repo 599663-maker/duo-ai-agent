@@ -414,12 +414,13 @@ function buildJudgeMessages(d) {
     `---`,
     ``,
     `请裁决并严格按以下 JSON 格式输出：`,
-    `{"winner":"正方 或 反方","score":"正方 X 分 - 反方 Y 分","reason":"不超过150字的裁决理由","highlight":"全场最精彩的一句交锋"}`,
+    `{"winner":"正方 或 反方","score":"正方 X 分 - 反方 Y 分","reason":"不超过150字的裁决理由","highlight":"全场最精彩的一句交锋","conclusion":"针对辩题的一句话最终结论（20～50字），直接说出获胜方的答案"}`,
     ``,
     `硬性规则：`,
     `1. 必须分出胜负，winner 只能是「正方」或「反方」，绝对禁止「平局」；`,
     `2. 双方分数必须不同，至少相差 1 分；`,
-    `3. 若双方表现接近，也要依据论证力度与反驳质量做出倾向性裁决。`,
+    `3. 若双方表现接近，也要依据论证力度与反驳质量做出倾向性裁决；`,
+    `4. conclusion 必须站在获胜方立场直接回答辩题，给出简短明确的最终答案。`,
   ].join("\n");
   return [
     { role: "system", content: system },
@@ -497,6 +498,7 @@ function parseVerdict(text) {
     score: obj && obj.score ? String(obj.score) : "",
     reason: obj && obj.reason ? String(obj.reason) : "",
     highlight: obj && obj.highlight ? String(obj.highlight) : "",
+    conclusion: obj && obj.conclusion ? String(obj.conclusion) : "",
   };
 }
 
@@ -542,6 +544,12 @@ async function resolveVerdict(d) {
       verdict.winner = ca >= cb ? "正方" : "反方";
       if (!verdict.reason) verdict.reason = "双方表现旗鼓相当，按交锋实录综合评定，" + verdict.winner + "略胜一筹。";
     }
+  }
+  if (!verdict.conclusion) {
+    const winMsg =
+      d.messages.find((m) => m.round === 0 && m.stance === verdict.winner) ||
+      d.messages.filter((m) => m.stance === verdict.winner).pop();
+    verdict.conclusion = winMsg ? String(winMsg.text || "").slice(0, 60) : "";
   }
   d.verdict = verdict;
   return text;

@@ -217,6 +217,7 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 22px 16
 .verdict .winner.win-a { color: var(--cyan); }
 .verdict .winner.win-b { color: var(--rose); }
 .verdict .winner.win-draw { color: #475569; }
+.verdict .conclusion { color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 10px 12px; font-size: 15px; font-weight: 700; line-height: 1.7; margin-top: 10px; text-align: left; }
 .verdict .score { color: var(--gold); font-size: 15px; font-weight: 700; margin-top: 6px; }
 .verdict .reason { color: #334155; font-size: 14px; line-height: 1.9; margin-top: 10px; text-align: left; }
 .verdict .highlight { color: var(--muted); font-size: 13px; line-height: 1.8; margin-top: 10px; text-align: left; border-left: 3px solid var(--gold); padding-left: 10px; }
@@ -297,6 +298,7 @@ input[type=range] { flex: 1; accent-color: var(--cyan); height: 24px; }
   margin-top: 14px; text-shadow: 0 0 30px rgba(217,119,6,.2);
 }
 .victory-score { color: var(--gold); font-size: 16px; font-weight: 700; margin-top: 10px; }
+.victory-conclusion { color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 8px 14px; font-size: 16px; font-weight: 800; margin-top: 12px; }
 .victory-reason { color: #334155; font-size: 14px; line-height: 1.9; margin-top: 14px; max-width: 560px; }
 .victory-btns { margin-top: 26px; }
 
